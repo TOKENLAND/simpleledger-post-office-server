@@ -1,0 +1,57 @@
+{
+  "name": "simpleledger-post-office-server",
+  "version": "0.0.1",
+  "description": "SLP Post Office Server",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpileOnly ./app/app.ts",
+    "prod": "tsc && node ./build/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "tsc --noEmit && eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slpland/simpleledger-post-office-server.git"
+  },
+  "keywords": [
+    "slp",
+    "bch",
+    "bitcoin",
+    "post",
+    "office",
+    "tokens"
+  ],
+  "author": "Andre Cabrera (andrecabrera@protonmail.ch)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/slpland/simpleledger-post-office-server/issues"
+  },
+  "homepage": "https://github.com/slpland/simpleledger-post-office-server#readme",
+  "dependencies": {
+    "@types/express": "^4.17.2",
+    "express": "^4.17.1",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.7.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.10.0",
+    "@typescript-eslint/parser": "^2.10.0",
+    "eslint": "^6.7.2",
+    "eslint-config-prettier": "6.7.0",
+    "eslint-plugin-prettier": "3.1.1",
+    "husky": "3.1.0",
+    "lint-staged": "^9.5.0",
+    "prettier": "1.19.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsc --noEmit && lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --fix",
+      "git add"
+    ]
+  }
+}
