@@ -1,4 +1,5 @@
-import { PostageRate, Stamp } from '../postageRate';
+import { PostageRate, Stamp } from '../types/postageRate';
+const MIN_WEIGHT = 365;
 
 // Add your stamps according to the Stamp type
 const sampleStamp: Stamp = {
@@ -13,6 +14,6 @@ const sampleStamp: Stamp = {
 export const postageRate: PostageRate = {
     version: 1,
     address: '', // SLP address for the merchant
-    weight: 0,
+    weight: MIN_WEIGHT,
     stamps: [sampleStamp],
 };

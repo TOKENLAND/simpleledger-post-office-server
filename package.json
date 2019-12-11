@@ -29,6 +29,8 @@
   "homepage": "https://github.com/slpland/simpleledger-post-office-server#readme",
   "dependencies": {
     "@types/express": "^4.17.2",
+    "bignumber.js": "^9.0.0",
+    "bitcore-payment-protocol": "^8.1.1",
     "express": "^4.17.1",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.3"
