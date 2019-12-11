@@ -14,7 +14,7 @@ export const addPostageToPayment = (payment: Payment): Payment => {
  * Receives a Payment object with postage, and broadcasts the transaction
  *
  */
-export const broadcastTransaction = () => {
+export const broadcastTransaction = (paymentWithPostage: Payment): void => {
     //TODO
 };
 
