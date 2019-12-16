@@ -17,3 +17,6 @@ export const postageRate: PostageRate = {
     weight: MIN_WEIGHT,
     stamps: [sampleStamp],
 };
+
+// Mnemonic for the post office wallet
+export const mnemonic = '';

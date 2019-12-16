@@ -12,4 +12,4 @@ const slpMiddleware = (req, res, next) => {
     });
 };
 
-export default slpMiddleware;
+module.exports = slpMiddleware;
