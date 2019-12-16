@@ -1,10 +1,12 @@
 import Payment from '../types/payment';
 import PaymentAck from '../types/paymentAck';
 import { BITBOX } from 'bitbox-sdk';
-import { mnemonic } from '../config/postage';
+import { mnemonic, postageRate } from '../config/postage';
+import errorMessages from './errorMessages';
 const { Transaction, TransactionBuilder } = require('bitcoincashjs-lib');
 
 const bitbox = new BITBOX();
+
 
 /*
  * Receives a Payment object according to the Simple Ledger Postage Protocol Specification
@@ -12,7 +14,8 @@ const bitbox = new BITBOX();
  *
  * Returns a transaction hex with postage according to the spec, "AFTER POSTAGE"
  */
-export const addPostageToPayment = async (payment: Payment): Promise<string> => {
+export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: string; error?: string }> => {
+    let error;
     let paymentHex;
     try {
         const rootSeed = bitbox.Mnemonic.toSeed(mnemonic);
@@ -27,7 +30,26 @@ export const addPostageToPayment = async (payment: Payment): Promise<string> => 
 
         // Import existing tx into a new TransactionBuilder
         let tx = Transaction.fromHex(payment.transactions[0].toString('hex'));
-        console.log(tx);
+	console.log(tx);
+
+	// Validate SLP tokens and OP_RETURN
+	const lokadIdHex = "534c5000";
+	const script = bitbox.Script.toASM(
+	tx.outs[0].script
+	).split(" ");
+
+	if (script[1] !== lokadIdHex) return { error: errorMessages.INVALID_SLP_OP_RETURN };
+
+	// Check if SLP token is supported 
+	let isSupported = false;
+	postageRate.stamps.forEach(stamp => {
+	    if (stamp.tokenId === script[4]) {
+		isSupported = true;
+	    }
+	});
+
+	if (!isSupported) return { error: errorMessages.UNSUPPORTED_SLP_TOKEN }
+
         const builder = TransactionBuilder.fromTransaction(tx, 'mainnet');
 
         // Add stamps
@@ -56,8 +78,9 @@ export const addPostageToPayment = async (payment: Payment): Promise<string> => 
         paymentHex = tx.toHex();
     } catch (error) {
         console.error(error);
+	throw error;
     }
-    return paymentHex;
+    return { hex: paymentHex, error };
 };
 
 /*

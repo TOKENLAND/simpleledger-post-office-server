@@ -1,3 +1,5 @@
+const OFF = 0;
+
 module.exports = {
   parser: "@typescript-eslint/parser",
   extends: [
@@ -10,5 +12,6 @@ module.exports = {
     sourceType: "module" 
   },
   rules: {
+      "@typescript-eslint/no-var-requires": OFF
   }
 };

@@ -34,6 +34,7 @@
     "bitcoincashjs-lib": "Bitcoin-com/bitcoincashjs-lib#v4.0.1",
     "bitcore-payment-protocol": "^8.1.1",
     "express": "^4.17.1",
+    "slp-sdk": "^4.9.1",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.3"
   },
