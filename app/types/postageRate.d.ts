@@ -8,6 +8,7 @@ export type Stamp = {
 export type PostageRate = {
     version: number;
     address: string;
+    transactionttl: number;
     weight: number;
     stamps: [Stamp];
 };
