@@ -1,12 +1,15 @@
 import Payment from '../types/payment';
 import PaymentAck from '../types/paymentAck';
 import { BITBOX } from 'bitbox-sdk';
+import SLPSDK from 'slp-sdk';
 import { mnemonic, postageRate } from '../config/postage';
 import errorMessages from './errorMessages';
+const BigNumber = require('bignumber.js');
 const { Transaction, TransactionBuilder } = require('bitcoincashjs-lib');
 
 const bitbox = new BITBOX();
-
+const SLP = new SLPSDK();
+const MIN_BYTES_INPUT = 181;
 
 /*
  * Receives a Payment object according to the Simple Ledger Postage Protocol Specification
@@ -19,6 +22,7 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
     let paymentHex;
     try {
         const rootSeed = bitbox.Mnemonic.toSeed(mnemonic);
+        console.log(mnemonic);
         const masterHDNode = bitbox.HDNode.fromSeed(rootSeed, 'bitcoincash');
         const bip44BCHAccount = bitbox.HDNode.derivePath(masterHDNode, "m/44'/245'/0'");
         const changeAddressNode0 = bitbox.HDNode.derivePath(bip44BCHAccount, '0/0');
@@ -30,47 +34,86 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
 
         // Import existing tx into a new TransactionBuilder
         let tx = Transaction.fromHex(payment.transactions[0].toString('hex'));
-	console.log(tx);
+        console.log(tx);
 
-	// Validate SLP tokens and OP_RETURN
-	const lokadIdHex = "534c5000";
-	const script = bitbox.Script.toASM(
-	tx.outs[0].script
-	).split(" ");
+        // Validate SLP tokens and OP_RETURN
+        const lokadIdHex = '534c5000';
+        const script = bitbox.Script.toASM(tx.outs[0].script).split(' ');
 
-	if (script[1] !== lokadIdHex) return { error: errorMessages.INVALID_SLP_OP_RETURN };
+        if (script[1] !== lokadIdHex) return { error: errorMessages.INVALID_SLP_OP_RETURN };
 
-	// Check if SLP token is supported 
-	let isSupported = false;
-	postageRate.stamps.forEach(stamp => {
-	    if (stamp.tokenId === script[4]) {
-		isSupported = true;
-	    }
-	});
+        // Check if SLP token is supported and if need to pay postage
+        let isSupported = false;
+        let isPostagePaid = false;
+        let stampTokenId;
+        let stampRate;
+        let stampDecimals;
+        postageRate.stamps.forEach(stamp => {
+            if (stamp.tokenId === script[4]) {
+                stampTokenId = script[4];
+                // Check if client needs to pay postage
+                if (stamp.rate === 0) {
+                    isPostagePaid = true;
+                }
 
-	if (!isSupported) return { error: errorMessages.UNSUPPORTED_SLP_TOKEN }
+                if (stamp.decimals === 0) {
+                    stampRate = Number(stamp.rate);
+                } else {
+                    stampRate = Number(stamp.rate) / Math.pow(10, stamp.decimals);
+                }
+                stampDecimals = stamp.decimals;
+                isSupported = true;
+            }
+        });
+        console.log('Script:', script);
+        if (!isSupported) return { error: errorMessages.UNSUPPORTED_SLP_TOKEN };
+
+        // Check is postage is being paid, if necessary
+        if (!isPostagePaid) {
+            // Find vout with post office slp address
+            let vout;
+            for (let i = 1; i < tx.outs.length; i++) {
+                const addressFromOut = SLP.Address.toSLPAddress(bitbox.Address.fromOutputScript(tx.outs[i].script));
+                const postOfficeAddress = SLP.Address.toSLPAddress(changeAddress0);
+                console.log(addressFromOut);
+                console.log(postOfficeAddress);
+                if (postOfficeAddress === addressFromOut) vout = 4 + i;
+                console.log('vout', vout);
+            }
+            if (!vout) return { error: errorMessages.INSUFFICIENT_POSTAGE };
+
+            // Check if token being spent is the same as described in the postage rate for the stamp
+            // Check if postage is being paid accordingly
+            if (stampTokenId === script[4]) {
+                const amount = new BigNumber(script[vout], 16) / Math.pow(10, 8 + stampDecimals);
+                if (amount < stampRate) {
+                    return { error: errorMessages.INSUFFICIENT_POSTAGE };
+                }
+            }
+        }
 
         const builder = TransactionBuilder.fromTransaction(tx, 'mainnet');
 
         // Add stamps
-        let count = 3;
-        utxos.forEach((utxo, index) => {
-            if (utxo.satoshis == 546 && count > 0) {
-                const txid = utxo.txid;
-                builder.addInput(txid, 0);
-                count--;
-            }
-        });
+        const neededStamps = tx.outs.length;
+        const stamps = utxos.filter(utxo => utxo.satoshis === postageRate.weight + MIN_BYTES_INPUT);
+        if (neededStamps + 1 > stamps.length) return { error: errorMessages.UNAVAILABLE_STAMPS };
+
+        for (let i = 0; i < neededStamps; i++) {
+            const txid = stamps[i].txid;
+            builder.addInput(txid, 0);
+        }
+
         let redeemScript;
         // Don't sign the inputs from the original transaction, only sign the stamps
-        for (let i = 1; i < 4; i += 1) {
+        for (let i = 1; i < neededStamps + 1; i += 1) {
             builder.sign(
                 i,
                 // Sign with changeAddressNode0 (since the utxos belong to this address)
                 bitbox.HDNode.toKeyPair(changeAddressNode0),
                 redeemScript,
                 0x01, // SIGHASH_ALL
-                546,
+                postageRate.weight + MIN_BYTES_INPUT,
             );
         }
 
@@ -78,7 +121,7 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
         paymentHex = tx.toHex();
     } catch (error) {
         console.error(error);
-	throw error;
+        throw error;
     }
     return { hex: paymentHex, error };
 };
@@ -87,8 +130,9 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
  * Receives a Payment object with postage, broadcasts the transaction,
  * add memo, return PaymentAck
  */
-export const broadcastTransaction = async (payment, paymentWithPostage: string): Promise<PaymentAck> => {
+export const broadcastTransaction = async (payment, paymentWithPostage): Promise<PaymentAck> => {
     const transactionId = await bitbox.RawTransactions.sendRawTransaction(paymentWithPostage);
     console.log(`https://explorer.bitcoin.com/bch/tx/${transactionId}`);
-    return { payment: { transactions: [Buffer.from(paymentWithPostage, 'hex')], ...payment }, memo: '' };
+    payment.transactions[0] = Buffer.from(paymentWithPostage, 'hex');
+    return { payment, memo: '' };
 };
