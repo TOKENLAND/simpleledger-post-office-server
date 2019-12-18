@@ -22,7 +22,6 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
     let paymentHex;
     try {
         const rootSeed = bitbox.Mnemonic.toSeed(mnemonic);
-        console.log(mnemonic);
         const masterHDNode = bitbox.HDNode.fromSeed(rootSeed, 'bitcoincash');
         const bip44BCHAccount = bitbox.HDNode.derivePath(masterHDNode, "m/44'/245'/0'");
         const changeAddressNode0 = bitbox.HDNode.derivePath(bip44BCHAccount, '0/0');
@@ -65,20 +64,18 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
                 isSupported = true;
             }
         });
-        console.log('Script:', script);
+
         if (!isSupported) return { error: errorMessages.UNSUPPORTED_SLP_TOKEN };
 
         // Check is postage is being paid, if necessary
+        const neededStamps = tx.outs.length - tx.ins.length;
         if (!isPostagePaid) {
             // Find vout with post office slp address
             let vout;
             for (let i = 1; i < tx.outs.length; i++) {
                 const addressFromOut = SLP.Address.toSLPAddress(bitbox.Address.fromOutputScript(tx.outs[i].script));
                 const postOfficeAddress = SLP.Address.toSLPAddress(changeAddress0);
-                console.log(addressFromOut);
-                console.log(postOfficeAddress);
                 if (postOfficeAddress === addressFromOut) vout = 4 + i;
-                console.log('vout', vout);
             }
             if (!vout) return { error: errorMessages.INSUFFICIENT_POSTAGE };
 
@@ -86,27 +83,28 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
             // Check if postage is being paid accordingly
             if (stampTokenId === script[4]) {
                 const amount = new BigNumber(script[vout], 16) / Math.pow(10, 8 + stampDecimals);
-                if (amount < stampRate) {
+                if (amount < stampRate * neededStamps) {
                     return { error: errorMessages.INSUFFICIENT_POSTAGE };
                 }
+            } else {
+                return { error: errorMessages.INSUFFICIENT_POSTAGE };
             }
         }
 
         const builder = TransactionBuilder.fromTransaction(tx, 'mainnet');
 
         // Add stamps
-        const neededStamps = tx.outs.length;
         const stamps = utxos.filter(utxo => utxo.satoshis === postageRate.weight + MIN_BYTES_INPUT);
-        if (neededStamps + 1 > stamps.length) return { error: errorMessages.UNAVAILABLE_STAMPS };
+        if (neededStamps > stamps.length) return { error: errorMessages.UNAVAILABLE_STAMPS };
 
         for (let i = 0; i < neededStamps; i++) {
             const txid = stamps[i].txid;
-            builder.addInput(txid, 0);
+            builder.addInput(txid, stamps[i].vout);
         }
 
         let redeemScript;
         // Don't sign the inputs from the original transaction, only sign the stamps
-        for (let i = 1; i < neededStamps + 1; i += 1) {
+        for (let i = tx.ins.length; i < neededStamps + 1; i += 1) {
             builder.sign(
                 i,
                 // Sign with changeAddressNode0 (since the utxos belong to this address)

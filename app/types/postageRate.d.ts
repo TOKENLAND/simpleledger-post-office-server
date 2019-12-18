@@ -10,5 +10,5 @@ export type PostageRate = {
     address: string;
     transactionttl: number;
     weight: number;
-    stamps: [Stamp];
+    stamps: Stamp[];
 };
