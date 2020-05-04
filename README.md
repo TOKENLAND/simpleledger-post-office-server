@@ -14,6 +14,8 @@ This demo uses a fork of Badger Wallet to send an SLP payment to someone else th
 
 ### Is it ready yet?
 Right now the master branch contains a rough prototype that was used in the demo. 
+You can follow [this page](https://github.com/TOKENLAND/simpleledger-post-office-server/projects/1) to see the progress made towards a stable 0.0.1 version.
+
 **Use it at your own risk, there are no guarantees**.
 
 ### Installation and usage
@@ -35,3 +37,11 @@ yarn dev
 
 - [Simple Ledger Postate Protocol Specification](https://github.com/simpleledger/slp-specifications/blob/master/slp-postage-protocol.md)
 - [Medium article by the protocol creator, Vin Armani](https://medium.com/@vinarmani/simple-ledger-postage-protocol-enabling-a-true-slp-token-ecosystem-on-bitcoin-cash-f960a58c16c4)
+
+### Maintainer
+
+@alcipir
+
+### License
+
+MIT License
