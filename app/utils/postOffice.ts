@@ -11,6 +11,43 @@ const bitbox = new BITBOX();
 const SLP = new SLPSDK();
 const MIN_BYTES_INPUT = 181;
 
+const validateSlpScript = (script: string[]): boolean => {
+    const lokadIdHex = '534c5000';
+    if (script[1] !== lokadIdHex) return false;
+    return true;
+};
+
+const checkIfPostageIsPaid = (
+    neededStamps: number,
+    stampData: any,
+    changeAddress0: any,
+    script: any,
+    tx: any,
+): boolean => {
+    if (stampData.rate > 0) {
+        // Find vout with post office slp address
+        let vout;
+        for (let i = 1; i < tx.outs.length; i++) {
+            const addressFromOut = SLP.Address.toSLPAddress(bitbox.Address.fromOutputScript(tx.outs[i].script));
+            const postOfficeAddress = SLP.Address.toSLPAddress(changeAddress0);
+            if (postOfficeAddress === addressFromOut) vout = 4 + i;
+        }
+        if (!vout) return false;
+
+        // Check if token being spent is the same as described in the postage rate for the stamp
+        // Check if postage is being paid accordingly
+        if (stampData.tokenId === script[4]) {
+            const amount = new BigNumber(script[vout], 16) / Math.pow(10, 8 + stampData.decimals);
+            if (amount < stampData.rate * neededStamps) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    return true;
+};
+
 /*
  * Receives a Payment object according to the Simple Ledger Postage Protocol Specification
  * See BEFORE POSTAGE example: https://github.com/simpleledger/slp-specifications/blob/master/slp-postage-protocol.md#example-transaction
@@ -33,74 +70,27 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
 
         // Import existing tx into a new TransactionBuilder
         let tx = Transaction.fromHex(payment.transactions[0].toString('hex'));
-        console.log(tx);
+        console.log(`Transaction: `, tx);
 
         // Validate SLP tokens and OP_RETURN
-        const lokadIdHex = '534c5000';
         const script = bitbox.Script.toASM(tx.outs[0].script).split(' ');
-
-        if (script[1] !== lokadIdHex) return { error: errorMessages.INVALID_SLP_OP_RETURN };
+        if (!validateSlpScript(script)) return { error: errorMessages.INVALID_SLP_OP_RETURN };
 
         // Check if SLP token is supported and if need to pay postage
-        let isSupported = false;
-        let isPostagePaid = false;
-        let stampTokenId;
-        let stampRate;
-        let stampDecimals;
-        postageRate.stamps.forEach(stamp => {
-            if (stamp.tokenId === script[4]) {
-                stampTokenId = script[4];
-                // Check if client needs to pay postage
-                if (stamp.rate === 0) {
-                    isPostagePaid = true;
-                }
-
-                if (stamp.decimals === 0) {
-                    stampRate = Number(stamp.rate);
-                } else {
-                    stampRate = Number(stamp.rate) / Math.pow(10, stamp.decimals);
-                }
-                stampDecimals = stamp.decimals;
-                isSupported = true;
-            }
-        });
-
-        if (!isSupported) return { error: errorMessages.UNSUPPORTED_SLP_TOKEN };
+        const stampData = postageRate.stamps.filter(stamp => stamp.tokenId === script[4]).pop() || false;
+        if (!stampData) return { error: errorMessages.UNSUPPORTED_SLP_TOKEN };
 
         // Check is postage is being paid, if necessary
         const neededStamps = tx.outs.length - tx.ins.length;
-        if (!isPostagePaid) {
-            // Find vout with post office slp address
-            let vout;
-            for (let i = 1; i < tx.outs.length; i++) {
-                const addressFromOut = SLP.Address.toSLPAddress(bitbox.Address.fromOutputScript(tx.outs[i].script));
-                const postOfficeAddress = SLP.Address.toSLPAddress(changeAddress0);
-                if (postOfficeAddress === addressFromOut) vout = 4 + i;
-            }
-            if (!vout) return { error: errorMessages.INSUFFICIENT_POSTAGE };
-
-            // Check if token being spent is the same as described in the postage rate for the stamp
-            // Check if postage is being paid accordingly
-            if (stampTokenId === script[4]) {
-                const amount = new BigNumber(script[vout], 16) / Math.pow(10, 8 + stampDecimals);
-                if (amount < stampRate * neededStamps) {
-                    return { error: errorMessages.INSUFFICIENT_POSTAGE };
-                }
-            } else {
-                return { error: errorMessages.INSUFFICIENT_POSTAGE };
-            }
-        }
+        if (!checkIfPostageIsPaid(neededStamps, stampData, changeAddress0, script, tx))
+            return { error: errorMessages.INSUFFICIENT_POSTAGE };
 
         const builder = TransactionBuilder.fromTransaction(tx, 'mainnet');
 
         // Add stamps
         const stamps = utxos.filter(utxo => utxo.satoshis === postageRate.weight + MIN_BYTES_INPUT);
         if (neededStamps > stamps.length) return { error: errorMessages.UNAVAILABLE_STAMPS };
-
-        for (let i = 0; i < neededStamps; i++) {
-            const txid = stamps[i].txid;
-            builder.addInput(txid, stamps[i].vout);
-        }
+        stamps.map(stamp => builder.addInput(stamp.txid, stamp.vout));
 
         let redeemScript;
         // Don't sign the inputs from the original transaction, only sign the stamps

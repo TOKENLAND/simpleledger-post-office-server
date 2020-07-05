@@ -7,7 +7,7 @@ import errorMessages from './utils/errorMessages';
 import { postageRate, mnemonic, changeAddress } from './config/postage';
 import { addPostageToPayment, broadcastTransaction } from './utils/postOffice';
 
-if (mnemonic === '')
+if (!mnemonic)
     throw Error(
         'Please set up a mnemonic in the config file. Make sure you set up your stamps and other postage information as well.',
     );
@@ -17,11 +17,11 @@ const paymentProtocol = new PaymentProtocol('BCH');
 
 app.use(slpMiddleware);
 
-app.get('/postage', function(req: express.Request, res: express.Response): void {
+app.get('/postage', function (req: express.Request, res: express.Response): void {
     res.send(postageRate);
 });
 
-app.post('/postage', async function(req: any, res: express.Response) {
+app.post('/postage', async function (req: any, res: express.Response) {
     try {
         if (!req.is('application/simpleledger-payment')) {
             res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE);
