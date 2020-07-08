@@ -33,6 +33,7 @@
     "bitbox-sdk": "^8.11.1",
     "bitcoincashjs-lib": "Bitcoin-com/bitcoincashjs-lib#v4.0.1",
     "bitcore-payment-protocol": "^8.1.1",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "slp-sdk": "^4.9.1",
     "ts-node-dev": "^1.0.0-pre.44",
