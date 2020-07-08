@@ -42,8 +42,8 @@ app.post('/postage', async function(req: any, res: express.Response) {
         }
         console.log('Transaction hex: ', resultPostage.hex)
         console.log('Sending transaction....')
-        const paymentAckObj: PaymentAck = await broadcastTransaction(payment, resultPostage.hex)
-        res.send(paymentProtocol.makePaymentACK(paymentAckObj).serialize())
+        const paymentAckObj: any = await broadcastTransaction(payment, resultPostage.hex)
+        res.status(200).json({ url: paymentAckObj.url })
     } catch (e) {
         console.error(e)
         res.status(500).send({ error: 'An error has occurred on the post office server' })

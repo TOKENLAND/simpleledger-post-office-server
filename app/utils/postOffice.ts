@@ -4,7 +4,8 @@ import { BITBOX } from 'bitbox-sdk'
 import SLPSDK from 'slp-sdk'
 import { mnemonic, postageRate } from '../config/postage'
 import errorMessages from './errorMessages'
-import { log } from 'console'
+import { UTXO } from '../types/utxo'
+
 const BigNumber = require('bignumber.js')
 const { Transaction, TransactionBuilder } = require('bitcoincashjs-lib')
 
@@ -21,7 +22,7 @@ const validateSlpScript = (script: string[]): boolean => {
 const checkIfPostageIsPaid = (
     neededStamps: number,
     stampData: any,
-    changeAddress0: any,
+    slpAddressPostOffice: any,
     script: any,
     tx: any,
 ): boolean => {
@@ -29,11 +30,8 @@ const checkIfPostageIsPaid = (
         // Find vout with post office slp address
         let vout = 0
         for (let i = 1; i < tx.outs.length; i++) {
-            console.log(`tx length`, tx.outs.length)
             const addressFromOut = SLP.Address.toSLPAddress(bitbox.Address.fromOutputScript(tx.outs[i].script))
-            console.log(`addressFromOut`, addressFromOut)
-            const postOfficeAddress = SLP.Address.toSLPAddress(changeAddress0)
-            console.log(`postOfficeAddress`, postOfficeAddress)
+            const postOfficeAddress = slpAddressPostOffice
             if (postOfficeAddress === addressFromOut) vout = 4 + i
         }
         if (!vout) return false
@@ -59,8 +57,8 @@ const checkIfPostageIsPaid = (
  * Returns a transaction hex with postage according to the spec, "AFTER POSTAGE"
  */
 export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: string; error?: string }> => {
-    let error
-    let paymentHex
+    let error: any
+    let paymentHex: any
     try {
         const rootSeed = bitbox.Mnemonic.toSeed(mnemonic)
         const masterHDNode = bitbox.HDNode.fromSeed(rootSeed, 'bitcoincash')
@@ -86,22 +84,33 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
         if (!stampData) return { error: errorMessages.UNSUPPORTED_SLP_TOKEN }
 
         // Check is postage is being paid, if necessary
-        const neededStamps = tx.outs.length - tx.ins.length
-        if (!checkIfPostageIsPaid(neededStamps, stampData, changeAddress0, script, tx))
+        const neededStamps = tx.outs.length - tx.ins.length + 1
+        if (!checkIfPostageIsPaid(neededStamps, stampData, postageRate.address, script, tx))
             return { error: errorMessages.INSUFFICIENT_POSTAGE }
 
         const builder = TransactionBuilder.fromTransaction(tx, 'mainnet')
 
         // Add stamps
-        const stamps = utxos.filter(utxo => utxo.satoshis === postageRate.weight + MIN_BYTES_INPUT)
+        const stamps: UTXO[] = []
+        for (const utxo of utxos) {
+            const utxoDetails: any = await bitbox.Transaction.details(utxo.txid)
+            console.log(utxoDetails)
+            const script = utxoDetails.vout[utxo.vout].scriptPubKey.asm.split(' ')
+            console.log(`validating ${script}.... ${validateSlpScript(script)}`)
+            if (utxo.satoshis === postageRate.weight + MIN_BYTES_INPUT && !validateSlpScript(script)) {
+                stamps.push(utxo)
+            }
+        }
         console.log(`available stamps: `, stamps.length)
         if (neededStamps > stamps.length) return { error: errorMessages.UNAVAILABLE_STAMPS }
-        stamps.map(stamp => builder.addInput(stamp.txid, stamp.vout))
+        for (let i = 0; i < neededStamps; i++) {
+            builder.addInput(stamps[i].txid, stamps[i].vout)
+        }
 
-        let redeemScript
+        let redeemScript: any
         // Don't sign the inputs from the original transaction, only sign the stamps
         console.log(`needed stamps: `, neededStamps)
-        for (let i = 1; i <= neededStamps + 1; i++) {
+        for (let i = 1; i <= neededStamps; i++) {
             console.log(`Signing...`, i)
             builder.sign(
                 i,
@@ -126,9 +135,9 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
  * Receives a Payment object with postage, broadcasts the transaction,
  * add memo, return PaymentAck
  */
-export const broadcastTransaction = async (payment, paymentWithPostage): Promise<PaymentAck> => {
+export const broadcastTransaction = async (payment: any, paymentWithPostage: any): Promise<any> => {
     const transactionId = await bitbox.RawTransactions.sendRawTransaction(paymentWithPostage)
     console.log(`https://explorer.bitcoin.com/bch/tx/${transactionId}`)
     payment.transactions[0] = Buffer.from(paymentWithPostage, 'hex')
-    return { payment, memo: '' }
+    return { payment, memo: '', url: `https://explorer.bitcoin.com/bch/tx/${transactionId}` }
 }
