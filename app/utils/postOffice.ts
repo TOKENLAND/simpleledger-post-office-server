@@ -66,6 +66,7 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
         const masterHDNode = bitbox.HDNode.fromSeed(rootSeed, 'bitcoincash')
         const bip44BCHAccount = bitbox.HDNode.derivePath(masterHDNode, "m/44'/245'/0'")
         const changeAddressNode0 = bitbox.HDNode.derivePath(bip44BCHAccount, '0/0')
+        console.log(`Address!`, changeAddressNode0)
 
         // get the cash address
         const changeAddress0 = bitbox.HDNode.toCashAddress(changeAddressNode0)
@@ -93,11 +94,13 @@ export const addPostageToPayment = async (payment: Payment): Promise<{ hex?: str
 
         // Add stamps
         const stamps = utxos.filter(utxo => utxo.satoshis === postageRate.weight + MIN_BYTES_INPUT)
+        console.log(`available stamps: `, stamps.length)
         if (neededStamps > stamps.length) return { error: errorMessages.UNAVAILABLE_STAMPS }
         stamps.map(stamp => builder.addInput(stamp.txid, stamp.vout))
 
         let redeemScript
         // Don't sign the inputs from the original transaction, only sign the stamps
+        console.log(`needed stamps: `, neededStamps)
         for (let i = 1; i <= neededStamps + 1; i++) {
             console.log(`Signing...`, i)
             builder.sign(

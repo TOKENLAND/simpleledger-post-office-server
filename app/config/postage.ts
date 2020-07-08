@@ -7,7 +7,7 @@ const bitbox = new BITBOX()
 const MIN_WEIGHT = 365
 
 // Mnemonic for the post office wallet
-export const mnemonic = 'mechanic coach napkin into digital soap wait fox stem puzzle soul empty'
+export const mnemonic = ''
 
 // Get information from the wallet
 const rootSeed = bitbox.Mnemonic.toSeed(mnemonic)
