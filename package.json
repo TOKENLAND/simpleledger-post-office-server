@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpileOnly ./app/app.ts",
     "prod": "tsc && node ./build/app.js",
+    "cmd": "node ./cli/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "tsc --noEmit && eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
   },
@@ -33,9 +34,18 @@
     "bitbox-sdk": "^8.11.1",
     "bitcoincashjs-lib": "Bitcoin-com/bitcoincashjs-lib#v4.0.1",
     "bitcore-payment-protocol": "^8.1.1",
+    "chalk": "^4.1.0",
+    "clear": "^0.1.0",
+    "clui": "^0.3.6",
+    "configstore": "^5.0.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "figlet": "^1.5.0",
+    "inquirer": "^7.3.2",
+    "lodash": "^4.17.19",
+    "minimist": "^1.2.5",
     "slp-sdk": "^4.9.1",
+    "touch": "^3.1.0",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.3"
   },

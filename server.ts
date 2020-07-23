@@ -1,11 +1,11 @@
 import express = require('express')
 import cors = require('cors')
-import slpMiddleware from './slpMiddleware'
+import slpMiddleware from './app/slpMiddleware'
 import Payment from './types/payment'
 import PaymentAck from './types/paymentAck'
 import PaymentProtocol from 'bitcore-payment-protocol'
 import errorMessages from './utils/errorMessages'
-import { postageRate, mnemonic, changeAddress } from './config/postage'
+import { postageRate, mnemonic, changeAddress } from './app/config/postage'
 import { addPostageToPayment, broadcastTransaction } from './utils/postOffice'
 
 if (!mnemonic)
