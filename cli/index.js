@@ -22,7 +22,7 @@ const run = async () => {
     console.log('Configuring stamps...')
     while (moreStamps) {
         const addedStamp = await inquirer.askStampQuestions();
-        const rate = (new BigNumber(addedStamp.rate)).times(10 ** addedStamp.tokenDetails.decimals)
+        const rate = (new BigNumber(addedStamp.rate)).times(10 ** addedStamp.decimals)
         stamps.push({ 
             name: addedStamp.tokenDetails.name,
             symbol: addedStamp.tokenDetails.symbol,
@@ -36,9 +36,11 @@ const run = async () => {
 
     const configObj = {
         "mnemonic": walletAndPostageDetails.mnemonic,
+        "apiKey": walletAndPostageDetails.apiKey,
+        "network": walletAndPostageDetails.network,
         "postageRate": {
             "version":1,
-            "address": walletAndPostageDetails.address,
+            "address": walletAndPostageDetails.slpAddress,
             "weight": walletAndPostageDetails.weight,
             "transactionttl": 30,
             "stamps": stamps,

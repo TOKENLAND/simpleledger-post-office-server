@@ -8,4 +8,4 @@ const errorMessages = {
     UNAVAILABLE_STAMPS: 'Stamps currently unavailable. In need of refill'
 };
 
-export default errorMessages;
+module.exports = errorMessages;
