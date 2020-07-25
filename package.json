@@ -29,9 +29,9 @@
   },
   "homepage": "https://github.com/slpland/simpleledger-post-office-server#readme",
   "dependencies": {
+    "@chris.troutner/bch-js": "^3.3.5",
     "@types/express": "^4.17.2",
     "bignumber.js": "^9.0.0",
-    "bitbox-sdk": "^8.11.1",
     "bitcoincashjs-lib": "Bitcoin-com/bitcoincashjs-lib#v4.0.1",
     "bitcore-payment-protocol": "^8.1.1",
     "chalk": "^4.1.0",
@@ -44,7 +44,6 @@
     "inquirer": "^7.3.2",
     "lodash": "^4.17.19",
     "minimist": "^1.2.5",
-    "slp-sdk": "^4.9.1",
     "touch": "^3.1.0",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.3"
