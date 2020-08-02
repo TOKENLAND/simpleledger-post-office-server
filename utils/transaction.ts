@@ -1,7 +1,7 @@
-import errorMessages from './errorMessages';
-import config from '../config.json';
-import BCHJS from "@chris.troutner/bch-js";
-import BigNumber from 'bignumber.js';
+import errorMessages from './errorMessages'
+import config from '../config.json'
+import BCHJS from "@chris.troutner/bch-js"
+import BigNumber from 'bignumber.js'
 const { TransactionBuilder, ECSignature } = require('bitcoincashjs-lib')
 
 const bchjs = new BCHJS()
@@ -60,7 +60,7 @@ export const getNeededStamps = (transaction: any): number =>  {
     const stampDetails = config.postageRate.stamps.filter(stamp => stamp.tokenId === postagePaymentTokenId).pop() || false;
     const minimumStampsNeeded = (transaction.outs.length - transaction.ins.length) + 1
     if (stampDetails) {
-        const stampRate = new BigNumber(stampDetails.rate).times(10 ** stampDetails.decimals);
+        const stampRate = new BigNumber(stampDetails.rate).times(10 ** stampDetails.decimals)
         const amountPostagePaid = new BigNumber(transactionScript[tokenOutputPostage], 16).times(10 ** stampDetails.decimals)
         if (amountPostagePaid.isLessThan(stampRate.times(minimumStampsNeeded))) {
             throw new Error(errorMessages.INSUFFICIENT_POSTAGE)

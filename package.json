@@ -2,11 +2,11 @@
   "name": "simpleledger-post-office-server",
   "version": "0.0.1",
   "description": "SLP Post Office Server",
-  "main": "index.js",
+  "main": "server.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpileOnly ./server.ts",
-    "prod": "tsc && node ./build/app.js",
-    "cmd": "node ./cli/index.js",
+    "start": "ts-node-dev --respawn --transpileOnly ./server.ts",
+    "start:production": "tsc && node ./build/server.js",
+    "cli": "node ./cli/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "tsc --noEmit && eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
   },

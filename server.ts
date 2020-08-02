@@ -1,8 +1,6 @@
 import express = require('express')
 import cors = require('cors')
 import slpMiddleware from './utils/slpMiddleware'
-import Payment from './types/payment'
-import PaymentAck from './types/paymentAck'
 import PaymentProtocol from 'bitcore-payment-protocol'
 import errorMessages from './utils/errorMessages'
 import { Transaction } from 'bitcoincashjs-lib'
@@ -43,9 +41,9 @@ app.post('/postage', async function(req: any, res: express.Response) {
         const stamps = await fetchUTXOsForStamps(neededStampsForTransaction, bchjs.HDNode.toCashAddress(hdNode))
         const stampedTransaction = buildTransaction(incomingTransaction, stamps, keyPair)
         const transactionId = await broadcastTransaction(stampedTransaction)
-        const memo = (`Transaction Broadcasted: https://explorer.bitcoin.com/bch/tx/${transactionId}`);
+        const memo = (`Transaction Broadcasted: https://explorer.bitcoin.com/bch/tx/${transactionId}`)
         payment.transactions[0] = stampedTransaction
-        const paymentAck = paymentProtocol.makePaymentACK({ payment, memo }, 'BCH');
+        const paymentAck = paymentProtocol.makePaymentACK({ payment, memo }, 'BCH')
         res.status(200).send(paymentAck.serialize())
     } catch (e) {
         console.error(e)

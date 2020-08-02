@@ -1,6 +1,6 @@
-import errorMessages from './errorMessages';
-import BCHJS from "@chris.troutner/bch-js";
-import config from '../config.json';
+import errorMessages from './errorMessages'
+import BCHJS from "@chris.troutner/bch-js"
+import config from '../config.json'
 
 const bchjs = new BCHJS({
   restURL: config.network === 'mainnet' ? 'https://api.fullstack.cash/v3/' : 'https://tapi.fullstack.cash/v3/',
