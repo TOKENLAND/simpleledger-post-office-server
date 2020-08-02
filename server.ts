@@ -5,11 +5,11 @@ import Payment from './types/payment'
 import PaymentAck from './types/paymentAck'
 import PaymentProtocol from 'bitcore-payment-protocol'
 import errorMessages from './utils/errorMessages'
-const { Transaction, TransactionBuilder } = require('bitcoincashjs-lib')
-const { getNeededStamps, buildTransaction } = require('./utils/transaction')
-const { fetchUTXOsForStamps, validateSlpTransaction, broadcastTransaction } = require('./utils/network')
-const BCHJS = require("@chris.troutner/bch-js")
-const config = require('./config.json')
+import { Transaction } from 'bitcoincashjs-lib'
+import { getNeededStamps, buildTransaction } from './utils/transaction'
+import { fetchUTXOsForStamps, validateSLPInputs, broadcastTransaction } from './utils/network'
+import BCHJS from "@chris.troutner/bch-js"
+import config from './config.json'
 
 const bchjs = new BCHJS({
     restURL: config.network === 'mainnet' ? 'https://api.fullstack.cash/v3/' : 'https://tapi.fullstack.cash/v3/',
@@ -38,17 +38,28 @@ app.post('/postage', async function(req: any, res: express.Response) {
         const keyPair = bchjs.HDNode.toKeyPair(hdNode);
         const payment: Payment = PaymentProtocol.Payment.decode(req.raw)
         const incomingTransaction = Transaction.fromHex(payment.transactions[0].toString('hex'))
+        await validateSLPInputs(incomingTransaction.ins)
         const neededStampsForTransaction = getNeededStamps(incomingTransaction)
         const stamps = await fetchUTXOsForStamps(neededStampsForTransaction, bchjs.HDNode.toCashAddress(hdNode))
         const stampedTransaction = buildTransaction(incomingTransaction, stamps, keyPair)
-        const resultPostage = await broadcastTransaction(stampedTransaction, payment)
-        res.status(200).json(resultPostage)
+        const transactionId = await broadcastTransaction(stampedTransaction)
+        const memo = (`Transaction Broadcasted: https://explorer.bitcoin.com/bch/tx/${transactionId}`);
+        payment.transactions[0] = stampedTransaction
+        const paymentAck = paymentProtocol.makePaymentACK({ payment, memo }, 'BCH');
+        res.status(200).send(paymentAck.serialize())
     } catch (e) {
         console.error(e)
-        res.status(500).send(e.message)
+        if (Object.values(errorMessages).includes(e.message)) {
+            res.status(400).send(e.message)
+        } else {
+            res.status(500).send(e.message)
+        }
     }
 })
 
-app.listen(3000, (): void => {
+app.listen(3000, async () => {
+    const rootSeed = await bchjs.Mnemonic.toSeed(config.mnemonic)
+    const hdNode = bchjs.HDNode.fromSeed(rootSeed)
+    console.log(`Send stamps to: ${bchjs.HDNode.toCashAddress(hdNode)}`)
     console.log('Post Office listening on port 3000!')
 })
