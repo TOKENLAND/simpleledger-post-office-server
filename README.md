@@ -28,6 +28,7 @@ yarn
 yarn cli
 yarn start
 ```
+
 - Set up your postage rate and accepted SLP tokens with `yarn cli`.
 - Fill up the server wallet with UTXOs comprising of 546 satoshis.
 - Send a modified transaction from a client to the server, according to the protocol.
@@ -44,3 +45,4 @@ yarn start
 ### License
 
 MIT License
+
