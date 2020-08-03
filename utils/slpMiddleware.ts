@@ -1,6 +1,6 @@
 const slpMiddleware = (req, res, next) => {
     if (!req.is('application/simpleledger-payment')) return next();
-    let data = [];
+    let data;
     req.on('data', chunk => {
         data.push(chunk);
     });
@@ -12,4 +12,4 @@ const slpMiddleware = (req, res, next) => {
     });
 };
 
-module.exports = slpMiddleware;
+export default slpMiddleware;

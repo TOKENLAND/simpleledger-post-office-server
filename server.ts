@@ -34,7 +34,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
         const rootSeed = await bchjs.Mnemonic.toSeed(config.mnemonic);
         const hdNode = bchjs.HDNode.fromSeed(rootSeed);
         const keyPair = bchjs.HDNode.toKeyPair(hdNode);
-        const payment: Payment = PaymentProtocol.Payment.decode(req.raw)
+        const payment = PaymentProtocol.Payment.decode(req.raw)
         const incomingTransaction = Transaction.fromHex(payment.transactions[0].toString('hex'))
         await validateSLPInputs(incomingTransaction.ins)
         const neededStampsForTransaction = getNeededStamps(incomingTransaction)
