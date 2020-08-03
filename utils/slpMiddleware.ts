@@ -1,15 +1,15 @@
 const slpMiddleware = (req, res, next) => {
-    if (!req.is('application/simpleledger-payment')) return next();
-    let data;
+    if (!req.is('application/simpleledger-payment')) return next()
+    const data: any[] = []
     req.on('data', chunk => {
-        data.push(chunk);
-    });
+        data.push(chunk)
+    })
     req.on('end', () => {
-        if (data.length <= 0) return next();
-        data = Buffer.concat(data);
-        req.raw = data;
-        next();
-    });
-};
+        if (data.length <= 0) return next()
+        const endData = Buffer.concat(data)
+        req.raw = endData
+        next()
+    })
+}
 
-export default slpMiddleware;
+export default slpMiddleware
