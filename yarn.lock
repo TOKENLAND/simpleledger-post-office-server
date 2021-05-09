@@ -801,14 +801,16 @@ bip-schnorr@^0.3.0:
     random-bytes "^1.0.0"
     safe-buffer "^5.0.1"
 
-"bip21@github:Bitcoin-com/bip21":
+bip21@Bitcoin-com/bip21:
   version "2.0.1"
+  uid "28f8d03a3a16ed11eb5b963248ed1be8c46c6d6f"
   resolved "https://codeload.github.com/Bitcoin-com/bip21/tar.gz/28f8d03a3a16ed11eb5b963248ed1be8c46c6d6f"
   dependencies:
     qs "^6.3.0"
 
-"bip32-utils@github:Bitcoin-com/bip32-utils#0.13.1":
+bip32-utils@Bitcoin-com/bip32-utils#0.13.1:
   version "0.13.1"
+  uid b8a33ebd0a0ac39de7cd987e5c3f77a8c5d84e58
   resolved "https://codeload.github.com/Bitcoin-com/bip32-utils/tar.gz/b8a33ebd0a0ac39de7cd987e5c3f77a8c5d84e58"
   dependencies:
     keccak "^1.3.0"
@@ -850,7 +852,7 @@ bitcoincash-ops@Bitcoin-com/bitcoincash-ops#2.0.0:
   version "2.0.0"
   resolved "https://codeload.github.com/Bitcoin-com/bitcoincash-ops/tar.gz/6ab82cc7326c67236f3b2d9d0457258ac2ef48e3"
 
-bitcoincash-ops@christroutner/bitcoincash-ops, "bitcoincash-ops@github:christroutner/bitcoincash-ops":
+bitcoincash-ops@christroutner/bitcoincash-ops:
   version "2.0.0"
   uid "0041f2d945aa0e893fbbb5c2ebdf6254f6ff0555"
   resolved "https://codeload.github.com/christroutner/bitcoincash-ops/tar.gz/0041f2d945aa0e893fbbb5c2ebdf6254f6ff0555"
@@ -875,8 +877,9 @@ bitcoincashjs-lib@Bitcoin-com/bitcoincashjs-lib#v4.0.1:
     varuint-bitcoin "^1.0.4"
     wif "^2.0.1"
 
-"bitcoincashjs-lib@github:christroutner/bitcoincashjs-lib#master":
+bitcoincashjs-lib@christroutner/bitcoincashjs-lib#master:
   version "4.0.0"
+  uid "715823b5d6eb3e2961e715605ad1464f3223da0b"
   resolved "https://codeload.github.com/christroutner/bitcoincashjs-lib/tar.gz/715823b5d6eb3e2961e715605ad1464f3223da0b"
   dependencies:
     bech32 "^1.1.2"
@@ -1313,8 +1316,9 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
-"coininfo@github:Bitcoin-com/coininfo":
+coininfo@Bitcoin-com/coininfo:
   version "4.0.0"
+  uid eece2c6141d08c3e7783929f2a1e1e681aa1a82c
   resolved "https://codeload.github.com/Bitcoin-com/coininfo/tar.gz/eece2c6141d08c3e7783929f2a1e1e681aa1a82c"
   dependencies:
     safe-buffer "^5.1.1"
@@ -4665,9 +4669,9 @@ qs@^6.3.0:
   integrity sha512-Cxm7/SS/y/Z3MHWSxXb8lIFqgqBowP5JMlTUFyJN88y0SGQhVmZnqFK/PeuMX9LzUyWsqqhNxIyg0jlzq946yA==
 
 querystringify@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.1.1.tgz#60e5a5fd64a7f8bfa4d2ab2ed6fdf4c85bad154e"
-  integrity sha512-w7fLxIRCRT7U8Qu53jQnJyPkYZIaR4n5151KMfcJlO/A9397Wxb1amJvROTK6TOnp7PfoAmg/qXiNHI+08jRfA==
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.2.0.tgz#3345941b4153cb9d082d8eee4cda2016a9aef7f6"
+  integrity sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==
 
 random-bytes@^1.0.0:
   version "1.0.0"
@@ -5831,9 +5835,9 @@ uri-js@^4.2.2:
     punycode "^2.1.0"
 
 url-parse@^1.4.3:
-  version "1.4.7"
-  resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.4.7.tgz#a8a83535e8c00a316e403a5db4ac1b9b853ae278"
-  integrity sha512-d3uaVyzDB9tQoSXFvuSUNFibTd9zxd2bkVrDRvF5TmvWWQwqE4lgYJ5m+x1DbecWkw+LK4RNl2CU1hHuOKPVlg==
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.5.1.tgz#d5fa9890af8a5e1f274a2c98376510f6425f6e3b"
+  integrity sha512-HOfCOUJt7iSYzEx/UqgtwKRMC6EU91NFhsCHMv9oM03VJcVo2Qrp8T8kI9D7amFf1cu+/3CEhgb3rF9zL7k85Q==
   dependencies:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
