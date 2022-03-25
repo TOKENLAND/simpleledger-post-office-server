@@ -43,7 +43,7 @@
     "figlet": "^1.5.0",
     "inquirer": "^7.3.2",
     "lodash": "^4.17.19",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "touch": "^3.1.0",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.3"
